@@ -49,11 +49,14 @@ def getPort():
 
 def examine_config(peer_info):
     print(get_host_ip())
-    print(getPort())
+    usable_port = getPort()
+    print("one usable port is " + str(usable_port))
 
     # 端口可用性检查
-    if not is_open(peer_info['ip_addr'], peer_info['server_port']):
-        return False
+    for i in range(0, 10):
+        if not is_open(peer_info['ip_addr'], usable_port+i):
+            pass
+            # return False
     # 共享文件夹存在性检查
     if not os.path.exists(peer_info['share_dir']):
         print('共享文件夹%s不存在', peer_info['share_dir'])

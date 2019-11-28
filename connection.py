@@ -16,12 +16,13 @@ import filemd5
 
 
 class Connection:
-	# 自身属性
 	__num = None
 	__ip_addr = None
 	__server_port = None
 	__client_port = None
 	__peer_list = None
+	__ips = None
+	__ports = None
 	__share_dir = None
 	__peer_num = 0
 	__query_res = dict()
@@ -50,6 +51,12 @@ class Connection:
 
 	def set_peer_list(self, peer_list):
 		self.__peer_list = peer_list
+	
+	def set_ips(self, ips):
+		self.__ips = ips
+
+	def set_ports(self, ports):
+		self.__ports = ports
 
 	def set_share_dir(self, share_dir):
 		self.__share_dir = share_dir
@@ -127,7 +134,9 @@ class Connection:
 	def tcp_server(self):
 		tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		tcp_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		tcp_server.bind(("127.0.0.1", self.__server_port))
+		print(self.__ip_addr)
+		print(self.__server_port)
+		tcp_server.bind((self.__ip_addr, self.__server_port))
 		tcp_server.listen(5)
 		while True:
 			try:

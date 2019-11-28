@@ -11,7 +11,7 @@ import config
 
 def tcp_server(ID):
 	init_config = config.Config()
-	peer = init_config.get_attr(ID)
+	peer = init_config.get_attr()
 	peer_s = connection.Connection()
 	peer_s.set_num(ID)
 	peer_s.set_ip(peer['ip_addr'])
@@ -25,7 +25,7 @@ def tcp_server(ID):
 
 def tcp_client(role_num, filename):
 	init_config = config.Config()
-	peer_ccon = init_config.get_attr(role_num)
+	peer_ccon = init_config.get_attr()
 	peer_c = connection.Connection()
 	peer_c.set_ip(peer_ccon['ip_addr'])
 	peer_c.set_server_port(peer_ccon['server_port'])
