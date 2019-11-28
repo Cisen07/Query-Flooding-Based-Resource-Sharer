@@ -6,7 +6,7 @@ __author__ = "CLin"
 __mtime__ = "2019/11/25"
 """
 import os
-# import multiprocessing as mp
+import multiprocessing as mp
 import process
 import config
 import examination
@@ -15,6 +15,9 @@ import threading
 import connection
 
 if __name__ == '__main__':
+    mp.freeze_support() # Windows 平台要加上这句，避免 RuntimeError
+    pool = mp.Pool() # 初始化进程池
+
     print("Query Flooding Basedd Resurece Sharer")
 
     # 从my_config.ini中获得自己的：peer编号、ip地址、端口号、共享文件夹名称、最大跳数、直接邻居
@@ -33,7 +36,7 @@ if __name__ == '__main__':
     peer_server.set_share_dir(peer_info['dir'])
     peer_server.set_ips(peer_info['ips'])
     peer_server.set_ports(peer_info['ports'])
-    peer_server.tcp_server()
+    pool.apply_async(peer_server.tcp_server) # 服务器在另一个进程中异步启动
 
     os.system("pause")
     exit()
