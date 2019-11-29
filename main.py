@@ -61,7 +61,8 @@ if __name__ == '__main__':
                 peer_client.set_client_port(peer_info['port'])
                 peer_client.set_share_dir(peer_info['dir'])
                 print("向所有邻居服务器发送get请求")
-                for i in range(0, len(peer_info['ips'])-1):
+                for i in range(0, len(peer_info['ips'])):
+                    print("send one")
                     peer_client.tcp_client_notice(peer_info['ips'][i], peer_info['ports'][i], "get %s %s %s %s" % (opt.split()[1], peer_info['ip'], peer_info['port'], peer_info['ttl']))
                 time.sleep(2) # 等待两秒
             else:
