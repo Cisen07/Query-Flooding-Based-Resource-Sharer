@@ -79,6 +79,7 @@ if __name__ == '__main__':
                 print("该文件已经存在本地！")
                 continue
         elif opt0 == 'exit':
-            exit()
+            p.terminate()
+            sys.exit()
         else:
             print("不合法的输入，请重新输入请求")
