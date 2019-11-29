@@ -190,7 +190,7 @@ class Connection:
 				res = conn.recv(1024)
 				f.write(res)
 				recv_size += len(res)
-			print("文件总大小: %s, 已下载: %s" % (total_size, recv_size))
+			# print("文件总大小: %s, 已下载: %s" % (total_size, recv_size))
 		if filemd5.compare_file_md5('%s%s' % (self.__share_dir, filename), cur_md5) == 1:
 			z = zipfile.ZipFile("%s%s" % (self.__share_dir, filename), 'r')
 			z.extractall("%s" % self.__share_dir)
