@@ -11,6 +11,7 @@ import time
 import config
 import socket
 import threading
+import sys
 import connection
 import examination
 
@@ -48,21 +49,25 @@ if __name__ == '__main__':
         print("\n使用说明：\n1. get filename\n2. exit")
         opt = input(">>>>>>>>>>>>>>>>>>>>>键入操作:")
         print()
-        if opt.split()[0] == 'get':
+        try: # 为了解决一个bug：客户端进程把服务端进程的输出视作输入的情况
+            opt0 = opt.split()[0]
+        except:
+            continue
+        if opt0 == 'get':
             # 检查文件是否已经在本地了
             if not examination.check_localfile(peer_info['dir'], opt.split()[1]):
                 peer_client = connection.Connection()
                 peer_client.set_ip(peer_info['ip'])
                 peer_client.set_client_port(peer_info['port'])
                 peer_client.set_share_dir(peer_info['dir'])
+                print("向所有邻居服务器发送get请求")
                 for i in range(0, len(peer_info['ips'])-1):
-                    print("向所有邻居服务器发送get请求")
                     peer_client.tcp_client_notice(peer_info['ips'][i], peer_info['ports'][i], "get %s %s %s %s" % (opt.split()[1], peer_info['ip'], peer_info['port'], peer_info['ttl']))
+                time.sleep(2) # 等待两秒
             else:
                 print("该文件已经存在本地！")
                 continue
-            time.sleep(2)
-        elif opt.split()[0] == 'exit':
+        elif opt0 == 'exit':
             exit()
         else:
             print("不合法的输入，请重新输入请求")

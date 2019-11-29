@@ -6,17 +6,16 @@ __author__ = "CLin"
 __mtime__ = "2019/11/25"
 """
 import configparser
-import ipaddress
-import os
 
 
 class Config:
     __cf = configparser.ConfigParser()
     __ttl = 0
 
+
     def get_attr(self):
         """
-        :return: dict {'ip_addr': ip, 'port': port, 'share_dir': share_dir, 'ttl': max pop, 'peer_list': peer_list}
+        :return: dict {'ip': ip, 'port': port, 'dir': share_dir, 'ttl': max pop, 'ips': peers' ip, 'ports': peers' port}
         """
         while True:
             try:

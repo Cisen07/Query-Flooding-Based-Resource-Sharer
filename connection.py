@@ -10,7 +10,6 @@ import threading
 import os
 import struct
 import json
-import config
 import zipfile
 import filemd5
 
@@ -40,9 +39,6 @@ class Connection:
 
 	def set_client_port(self, client_port):
 		self.__client_port = int(client_port)
-
-	def set_peer_list(self, peer_list):
-		self.__peer_list = peer_list
 	
 	def set_ips(self, ips):
 		self.__ips = ips
@@ -52,6 +48,7 @@ class Connection:
 
 	def set_share_dir(self, share_dir):
 		self.__share_dir = share_dir
+
 
 	def query(self, root, filename):
 		items = os.listdir(root)
@@ -73,14 +70,15 @@ class Connection:
 					continue
 				else:
 					self.__cmd = res.decode('utf-8').split()
-					print("收到请求的报文是：%s" % self.__cmd)
+					print("\n收到请求报文：%s" % self.__cmd)
+					# 收到请求的格式有get、found、request三种
 					if self.__cmd[0] == 'get':
 						res = self.update_ttl(res) # ttl-1
 						self.__source_ip = self.__cmd[2]
 						self.__source_port = self.__cmd[3]
 						self.__query_res[self.__cmd[1]] = 0 # 0标志本地未找到，1标志本地找到
 						self.query(self.__share_dir, self.__cmd[1])
-						print("收到请求，在本地查找 %s " % self.__cmd[1])
+						print("处理请求：在本地查找 %s " % self.__cmd[1])
 
 						# 本地未找到，查询邻居节点
 						if self.__query_res[self.__cmd[1]] == 0:
@@ -99,7 +97,7 @@ class Connection:
 							msg = "found %s at %s %s" % (self.__cmd[1], self.__ip_addr, self.__server_port)
 							self.tcp_client_notice(self.__source_ip, self.__source_port, msg)
 
-					# 收到“found filename at [ip] [port]”，向x的server发送request请求
+					# 收到“found filename at [ip] [port]”，向请求的源server发送request请求
 					elif self.__cmd[0] == 'found':
 						self.__source_ip = self.__cmd[3]
 						self.__source_port = self.__cmd[4]
@@ -109,8 +107,7 @@ class Connection:
 					# 收到“request filename [ip] [port]”消息，即向请求源发送文件
 					elif self.__cmd[0] == 'request':
 						self.__send(conn, self.__cmd[1])
-
-					# 过滤其它命令
+						print("发送完成, 按回车继续操作")
 					else:
 						msg = "不合法的命令"
 						conn.send(msg.encode())
@@ -130,7 +127,7 @@ class Connection:
 			try:
 				conn, addr = tcp_server.accept()
 			except ConnectionAbortedError:
-				print("!!!server except")
+				print("!!!服务器连接异常终止")
 				continue
 			t = threading.Thread(target=self.tcp_handler, args=(conn, addr))
 			t.start()
@@ -223,19 +220,3 @@ class Connection:
 		msg[-1] = str(int(msg[-1]) - 1)
 		new_msg = " ".join(msg)
 		return new_msg
-
-
-	def get_timeout_flag(self):
-		return self.__timeout_flag
-
-
-	def get_peer_num(self):
-		return self.__peer_num
-
-
-	def get_peer_list(self):
-		return self.__peer_list
-
-
-	def get_num(self):
-		return self.__num
