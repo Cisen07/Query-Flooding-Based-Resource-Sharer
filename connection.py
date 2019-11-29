@@ -79,9 +79,6 @@ class Connection:
 					# 收到请求的格式有get、found、request三种
 					if self.__cmd[0] == 'get' and self.__state == 0: # 只有不在发送状态时才能处理get
 						res = self.update_ttl(res) # ttl-1
-						if int(self.__cmd[-1]) <= 1: # 达到跳数限制就不再执行请求了
-							print("\n跳数达到上限")
-							continue
 						self.__source_ip = self.__cmd[2]
 						self.__source_port = self.__cmd[3]
 						self.__query_res[self.__cmd[1]] = 0 # 0标志本地未找到，1标志本地找到
@@ -91,6 +88,9 @@ class Connection:
 						# 本地未找到，查询邻居节点
 						if self.__query_res[self.__cmd[1]] == 0:
 							if int(self.__cmd[-1]) >= 0:
+								if int(self.__cmd[-1]) <= 1: # 达到跳数限制就不再执行请求了
+									print("\n跳数达到上限")
+									continue
 								print("\n本地未找到，向邻居发送请求")
 								self.__state = 1
 								for i in range(0, len(self.__ips)):
