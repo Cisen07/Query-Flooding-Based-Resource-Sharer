@@ -12,7 +12,7 @@ import struct
 import json
 import zipfile
 import time
-import filemd5
+import file_hash
 
 
 class Connection:
@@ -166,7 +166,7 @@ class Connection:
 		z.close()
 		header_dic = {
 			'filename': filename,
-			'md5': filemd5.get_file_md5(filename),
+			'md5': file_hash.get_file_md5(filename),
 			'file_size': z.infolist()[0].file_size
 		}
 		header_json = json.dumps(header_dic)
@@ -208,7 +208,7 @@ class Connection:
 				f.write(res)
 				recv_size += len(res)
 			# print("文件总大小: %s, 已下载: %s" % (total_size, recv_size))
-		if filemd5.compare_file_md5('%s%s' % (self.__share_dir, filename), cur_md5) == 1:
+		if file_hash.compare_file_md5('%s%s' % (self.__share_dir, filename), cur_md5) == 1:
 			z = zipfile.ZipFile("%s%s" % (self.__share_dir, filename), 'r')
 			z.extractall("%s" % self.__share_dir)
 			z.close()
