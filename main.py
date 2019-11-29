@@ -61,10 +61,14 @@ if __name__ == '__main__':
                 peer_client.set_client_port(peer_info['port'])
                 peer_client.set_share_dir(peer_info['dir'])
                 print("向所有邻居服务器发送get请求")
+                peer_server.set_state(1) # 进入发送状态
+                print("get into sending state")
                 for i in range(0, len(peer_info['ips'])):
-                    print("send one")
+                    # print("send one")
                     peer_client.tcp_client_notice(peer_info['ips'][i], peer_info['ports'][i], "get %s %s %s %s" % (opt.split()[1], peer_info['ip'], peer_info['port'], peer_info['ttl']))
-                time.sleep(2) # 等待两秒
+                time.sleep(4) # 等待4秒
+                peer_server.set_state(0) # 退出发送状态
+                print("get out of the sending state")
             else:
                 print("该文件已经存在本地！")
                 continue

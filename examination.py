@@ -19,10 +19,11 @@ def check_localfile(root, filename):
     items = os.listdir(root)
     for item in items:
         path = os.path.join(root, item)
+        # 在本地找到文件
         if path.split('\\')[-1] == filename or path.split('/')[-1] == filename:
-            print("在本地找到文件")
+            
             return True
+        # 发现目录，进入目录内层查找
         elif os.path.isdir(path):
-            print("发现目录，进入目录内层查找")
             return check_localfile(path.replace('\\', '/'), filename)
     return False

@@ -11,6 +11,7 @@ import os
 import struct
 import json
 import zipfile
+import time
 import filemd5
 
 
@@ -24,6 +25,7 @@ class Connection:
 	__share_dir = None
 	__query_res = dict()
 	__path_list = dict()
+	__state = 0 # 如果为1，表示正在发送或者是转发信息
 
 	# 服务器端收到的命令
 	__cmd = []
@@ -49,6 +51,9 @@ class Connection:
 	def set_share_dir(self, share_dir):
 		self.__share_dir = share_dir
 
+	def set_state(self, state):
+		self.__state = state
+
 
 	def query(self, root, filename):
 		items = os.listdir(root)
@@ -70,32 +75,44 @@ class Connection:
 					continue
 				else:
 					self.__cmd = res.decode('utf-8').split()
-					print("\n收到请求报文：%s" % self.__cmd)
+					# print("\n收到请求报文：%s" % self.__cmd)
 					# 收到请求的格式有get、found、request三种
-					if self.__cmd[0] == 'get':
+					if self.__cmd[0] == 'get' and self.__state == 0: # 只有不在发送状态时才能处理get
 						res = self.update_ttl(res) # ttl-1
+						if int(self.__cmd[-1]) <= 1: # 达到跳数限制就不再执行请求了
+							print("\n跳数达到上限")
+							continue
 						self.__source_ip = self.__cmd[2]
 						self.__source_port = self.__cmd[3]
 						self.__query_res[self.__cmd[1]] = 0 # 0标志本地未找到，1标志本地找到
 						self.query(self.__share_dir, self.__cmd[1])
-						print("处理请求：在本地查找 %s " % self.__cmd[1])
+						# print("处理请求：在本地查找 %s " % self.__cmd[1])
 
 						# 本地未找到，查询邻居节点
 						if self.__query_res[self.__cmd[1]] == 0:
 							if int(self.__cmd[-1]) >= 0:
-								print("本地未找到，向邻居发送请求")
+								print("\n本地未找到，向邻居发送请求")
+								self.__state = 1
 								for i in range(0, len(self.__ips)):
 									if self.__ips[i] == self.__source_ip and self.__ports[i] == self.__source_port: # 不能给请求方发送查找的请求
 										continue
 									else:
+										# print("send one in connection.py")
 										self.tcp_client_notice(self.__ips[i], self.__ports[i], res)
 							else:
-								print("请求已达到最大跳数限制")
+								# print("请求已达到最大跳数限制")
+								pass
 
-						# 本地找到，向请求源server发送成功消息
 						else:
+							# print("本地找到，向请求源server发送成功消息")
 							msg = "found %s at %s %s" % (self.__cmd[1], self.__ip_addr, self.__server_port)
 							self.tcp_client_notice(self.__source_ip, self.__source_port, msg)
+
+						time.sleep(1.5) # 等待1.5秒
+						self.__state = 0 # 退出发送状态
+
+					elif self.__cmd[0] == 'get' and self.__state == 1: # 在发送状态，不处理get
+						pass
 
 					# 收到“found filename at [ip] [port]”，向请求的源server发送request请求
 					elif self.__cmd[0] == 'found':
@@ -107,7 +124,7 @@ class Connection:
 					# 收到“request filename [ip] [port]”消息，即向请求源发送文件
 					elif self.__cmd[0] == 'request':
 						self.__send(conn, self.__cmd[1])
-						print("发送完成, 按回车继续操作")
+						print("\n发送完成, 按回车继续操作")
 					else:
 						msg = "不合法的命令"
 						conn.send(msg.encode())
@@ -195,6 +212,7 @@ class Connection:
 			z = zipfile.ZipFile("%s%s" % (self.__share_dir, filename), 'r')
 			z.extractall("%s" % self.__share_dir)
 			z.close()
+			print("收到文件")
 		else:
 			print("文件在运输过程中被损坏")
 		while True:
@@ -207,12 +225,15 @@ class Connection:
 
 	def tcp_client_notice(self, ip, port, msg):
 		tcp_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		tcp_client.connect((ip, int(port)))
-		tcp_client.send(msg.encode())
-		if msg.split()[0] == 'request':
-			self.__save(tcp_client)
-		tcp_client.shutdown(2)
-		tcp_client.close()
+		try: # 如果对方未启动，则不会正常连接
+			tcp_client.connect((ip, int(port)))
+			tcp_client.send(msg.encode())
+			if msg.split()[0] == 'request':
+				self.__save(tcp_client)
+			tcp_client.shutdown(2)
+			tcp_client.close()
+		except:
+			pass
 
 
 	def update_ttl(self, msg):
