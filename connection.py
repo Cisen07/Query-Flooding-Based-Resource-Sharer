@@ -84,7 +84,7 @@ class Connection:
 						if self.__query_res[self.__cmd[1]] == 0:
 							if int(self.__cmd[-1]) >= 0:
 								print("本地未找到，向邻居发送请求")
-								for i in range(0, len(self.__ips)-1):
+								for i in range(0, len(self.__ips)):
 									if self.__ips[i] == self.__source_ip and self.__ports[i] == self.__source_port: # 不能给请求方发送查找的请求
 										continue
 									else:
